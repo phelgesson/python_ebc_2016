@@ -41,7 +41,69 @@ Automatically opens a webpage on your computer with a youtube search for the tit
 Once your program is ready the following four lines of code should run without errors. (After you have removed the negative duration song!).
 """
 
-songs = None # TODO
+# Internal modules #
+import warnings, re
+
+# Third-party modules #
+import sh
+
+#######################################################################
+class Song(object):
+    """Class definition for Song objects"""
+
+    def __init__(self, title, artist, duration):
+        """Constructor"""
+        self.title = title
+        self.artist = artist
+        try:
+            duration = int(duration)
+        except ValueError:
+            warnings.warn('Song duration (%s) impossible to convert to a number. Sets self.duration to 0.')
+            duration = 0
+        if duration < 0:
+            raise ValueError('Song duration cannot be negative (%s)' % duration)
+        else:
+            self.duration = duration
+        
+    
+    def pretty_duration(self):
+        """Returns string with song duration formatted as 'HH hours MM minutes SS seconds'"""
+        t = int(self.duration)
+        tdict = dict(seconds = t % 60,
+            minutes = (t / 60) % 60,
+            hours = t / 3600)
+        tstr = ''
+        for key in ['hours', 'minutes', 'seconds']:
+            if tdict[key] > 0 or key == 'seconds':
+                # Skip hours or minutes if zero
+                tstr += '%02i %s ' % (tdict[key],key)
+        return tstr.strip()
+        
+    def play(self):
+        """Opens Firefox with a youtube search for the song"""
+        youtube_str = 'https://www.youtube.com/results?search_query='
+        song_str = '"%s"+"%s"' % (re.sub('[ ]+','+',self.artist), re.sub('[ ]+', '+',self.title))
+        sh.firefox(youtube_str + song_str)
+    
+    
+    
+
+def csv2song_list(csv_file, sep = ','):
+    """Parses csv_file and returns list of Song objects"""
+    songs = []
+    with open(csv_file, 'r') as f:
+        for line in f:
+            lst = line.strip().split(sep)
+            if lst == ['Name','Artist','Duration'] and songs == []:
+                # if line is header line
+                continue
+            songs.append(Song(*lst))
+    return songs
+            
+
+
+csv_file = sh.HOME + '/lulu_mix_16.csv'
+songs = csv2song_list(csv_file)
 
 for s in songs: print s.artist
 for s in songs: print s.pretty_duration()
