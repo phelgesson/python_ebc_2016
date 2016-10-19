@@ -34,6 +34,8 @@ Once the exercise is completed, this file should be uploaded to your github repo
 # Once the class exists in a file called "fasta_parser.py", it
 # should be possible to import it and the following line should
 # work. It just needs to be in the same directory as your current directory.
+import fasta_parser
+reload(fasta_parser)
 from fasta_parser import FastaParser
 
 # Step 2: One should be able to make new instances from this class
